@@ -1,0 +1,14 @@
+{
+  "name": "gopratle-fullstack-assignment",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @gopratle/web dev & pnpm --filter @gopratle/api dev",
+    "dev:web": "pnpm --filter @gopratle/web dev",
+    "dev:api": "pnpm --filter @gopratle/api dev",
+    "build": "pnpm --filter @gopratle/contracts build && pnpm --filter @gopratle/web build && pnpm --filter @gopratle/api build",
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "clean": "pnpm -r run clean"
+  }
+}
