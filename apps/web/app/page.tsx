@@ -1,7 +1,7 @@
+"use client";
+
+import { RequirementWizard } from "../components/requirement-wizard/requirement-wizard";
+
 export default function Home() {
-  return (
-    <main>
-      <h1>GoPratle</h1>
-    </main>
-  );
+  return <RequirementWizard />;
 }

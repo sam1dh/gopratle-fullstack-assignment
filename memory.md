@@ -10,7 +10,7 @@
 - **Source docs:** `plan.md`, `system.md`, `ui.md`
 
 ## 2. Current Status
-- **Phase:** Milestone 3 complete — Express backend API implemented, 11 tests pass, TypeScript passes.
+- **Phase:** Milestone 4 complete — Frontend wizard (Steps 1–3) implemented, TypeScript passes.
 - **Last updated:** 2026-09-08
 - **Blocking issues:** None.
 
@@ -22,6 +22,23 @@
 - [ ] Test runner (Vitest vs Jest) — TBD
 
 ## 4. Progress Log
+
+### 2026-09-08 — Milestone 4: Frontend Wizard (Steps 1–3)
+- Created Tailwind v4 CSS with shadcn/ui design tokens (`apps/web/app/globals.css`).
+- Created shadcn/ui-style components: Button, Input, Label, Textarea, Select, Card.
+- Created `apps/web/lib/utils.ts` (cn helper).
+- Created `apps/web/types/wizard.ts` (StepId, WizardState, STEPS, CATEGORY_INFO).
+- Created `apps/web/hooks/use-requirement-wizard.ts` (form state, step navigation, category switching).
+- Created `apps/web/components/requirement-wizard/wizard-progress.tsx` (step indicator with check marks).
+- Created `apps/web/components/requirement-wizard/category-card.tsx` (selectable cards with icons).
+- Created `apps/web/components/requirement-wizard/step-basics.tsx` (Step 1: event name, type, dates, location, venue, category cards).
+- Created `apps/web/components/requirement-wizard/step-requirements.tsx` (Step 2: category-specific primary fields).
+- Created `apps/web/components/requirement-wizard/step-details.tsx` (Step 3: category-specific secondary fields).
+- Created `apps/web/components/requirement-wizard/requirement-wizard.tsx` (main shell with progress rail, step validation, Back/Continue).
+- Updated `apps/web/app/layout.tsx` (metadata, globals.css import).
+- Updated `apps/web/app/page.tsx` (renders RequirementWizard).
+- Verified: `pnpm -r run typecheck` passes, `pnpm -r run test` passes (37 total).
+- Next: Milestone 5 — Review step + API submission + success state.
 
 ### 2026-09-08 — Milestone 3: Express Backend API
 - Created `apps/api/src/config/env.ts` (Zod env validation), `database.ts` (Mongoose connect/disconnect).
@@ -35,6 +52,7 @@
 - Updated `apps/api/src/server.ts` (env-based startup, graceful shutdown).
 - Added vitest + supertest, wrote 11 API tests (health, create planner/performer/crew, invalid payloads, get by id, 404).
 - Verified: `pnpm -r run typecheck` passes, `pnpm -r run test` passes (26 + 11 = 37 tests).
+- **Committed:** `feat: implement requirement API with validation and tests` (f13b0b8)
 - Next: Milestone 4 — Frontend wizard (Steps 1–3).
 
 ### 2026-09-08 — Milestone 2: Shared Zod Contracts
@@ -92,8 +110,8 @@
 - [x] Phase 3 — Repo scaffold + `npm run dev/lint/typecheck/test/build`
 - [x] Phase 4 — Contracts package + schema tests
 - [x] Phase 5 — Backend API (`POST /api/v1/requirements`, `GET /:id`, health, error envelope)
-- [ ] Phase 6 — Frontend wizard Step 1
-- [ ] Phase 7 — Steps 2–3 category-aware
+- [x] Phase 6 — Frontend wizard Step 1
+- [x] Phase 7 — Steps 2–3 category-aware
 - [ ] Phase 8 — Review step
 - [ ] Phase 9 — API integration
 - [ ] Phase 10 — Success state
@@ -104,9 +122,9 @@
 - [ ] Demo data + 5–7 min video
 
 ## 6. Next Up
-1. Build frontend wizard Step 1 (event basics + category cards).
-2. Build Steps 2–3 (category-dependent fields).
-3. Build Step 4 (review + submit + success).
+1. Build Step 4 — Review + Submit + Success state.
+2. Create API client module.
+3. Connect submission to backend API.
 
 ## 7. Open Questions / Risks
 - Backend host choice?
