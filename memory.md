@@ -10,7 +10,7 @@
 - **Source docs:** `plan.md`, `system.md`, `ui.md`
 
 ## 2. Current Status
-- **Phase:** Milestone 1 complete — monorepo scaffolded, workspace resolution verified, TypeScript passes.
+- **Phase:** Milestone 3 complete — Express backend API implemented, 11 tests pass, TypeScript passes.
 - **Last updated:** 2026-09-08
 - **Blocking issues:** None.
 
@@ -23,6 +23,29 @@
 
 ## 4. Progress Log
 
+### 2026-09-08 — Milestone 3: Express Backend API
+- Created `apps/api/src/config/env.ts` (Zod env validation), `database.ts` (Mongoose connect/disconnect).
+- Created `apps/api/src/utils/api-error.ts` (ApiError, ValidationError, NotFoundError).
+- Created `apps/api/src/middleware/request-id.ts`, `error-handler.ts`, `not-found.ts`.
+- Created `apps/api/src/models/requirement.model.ts` (Mongoose schema with timestamps, category index).
+- Created `apps/api/src/services/requirement.service.ts` (create + getById).
+- Created `apps/api/src/controllers/requirement.controller.ts` (Zod validation + error formatting).
+- Created `apps/api/src/routes/health.routes.ts`, `requirement.routes.ts`.
+- Updated `apps/api/src/app.ts` (Helmet, CORS, rate limiting, request ID, routes, error handlers).
+- Updated `apps/api/src/server.ts` (env-based startup, graceful shutdown).
+- Added vitest + supertest, wrote 11 API tests (health, create planner/performer/crew, invalid payloads, get by id, 404).
+- Verified: `pnpm -r run typecheck` passes, `pnpm -r run test` passes (26 + 11 = 37 tests).
+- Next: Milestone 4 — Frontend wizard (Steps 1–3).
+
+### 2026-09-08 — Milestone 2: Shared Zod Contracts
+- Created `packages/contracts/src/categories/planner.ts`, `performer.ts`, `crew.ts` with category-specific detail schemas.
+- Created `packages/contracts/src/requirement.ts` with event schema (date range validation), `createRequirementSchema` (Zod discriminated union on `category`), and response/error DTOs.
+- Created `packages/contracts/src/index.ts` exporting all schemas and types.
+- Added vitest to `packages/contracts`, wrote 26 tests covering valid payloads for all 3 categories, invalid category/details/date-range, missing fields, and discriminated union behavior.
+- Verified: `pnpm -r run typecheck` passes, `pnpm --filter @gopratle/contracts test` passes (26/26).
+- **Committed:** `feat: add shared Zod contracts and schema tests` (4728450)
+- Next: Milestone 3 — Express backend API.
+
 ### 2026-09-08 — Milestone 1: Scaffold Monorepo + Tooling
 - Created root `package.json` (pnpm workspaces, dev/build/lint/typecheck/test scripts), `pnpm-workspace.yaml`, `.gitignore`, `.env.example`, root `tsconfig.json`.
 - Created `apps/web/` (Next.js 15 + React 19 + Tailwind 4 + shadcn deps + React Hook Form + Zod + path aliases + ESLint + placeholder `page.tsx`/`layout.tsx`).
@@ -32,6 +55,7 @@
 - Fixed TS2742 in `apps/api/src/app.ts` (added `Express` type annotation).
 - Verified: `pnpm -r run typecheck` passes across all 3 workspaces.
 - Workspace resolution confirmed: both `apps/web` and `apps/api` link to `@gopratle/contracts`.
+- **Committed:** `chore: scaffold monorepo with pnpm workspaces` (24d72bf)
 - Next: Milestone 2 — shared Zod contracts in `packages/contracts`.
 
 ### 2026-09-08 — Add Engineering Principles to system.md
@@ -66,8 +90,8 @@
 - [ ] Phase 1 — Product contract written
 - [ ] Phase 2 — UX direction locked
 - [x] Phase 3 — Repo scaffold + `npm run dev/lint/typecheck/test/build`
-- [ ] Phase 4 — Contracts package + schema tests
-- [ ] Phase 5 — Backend API (`POST /api/v1/requirements`, `GET /:id`, health, error envelope)
+- [x] Phase 4 — Contracts package + schema tests
+- [x] Phase 5 — Backend API (`POST /api/v1/requirements`, `GET /:id`, health, error envelope)
 - [ ] Phase 6 — Frontend wizard Step 1
 - [ ] Phase 7 — Steps 2–3 category-aware
 - [ ] Phase 8 — Review step
@@ -80,9 +104,9 @@
 - [ ] Demo data + 5–7 min video
 
 ## 6. Next Up
-1. Implement Zod schemas in `packages/contracts` (category types, event schema, detail schemas, combined requirement schema).
-2. Write schema tests (valid planner/performer/crew, invalid payloads).
-3. Wire schemas into Express backend validation.
+1. Build frontend wizard Step 1 (event basics + category cards).
+2. Build Steps 2–3 (category-dependent fields).
+3. Build Step 4 (review + submit + success).
 
 ## 7. Open Questions / Risks
 - Backend host choice?
