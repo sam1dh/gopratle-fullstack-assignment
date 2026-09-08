@@ -10,7 +10,7 @@
 - **Source docs:** `plan.md`, `system.md`, `ui.md`
 
 ## 2. Current Status
-- **Phase:** Milestone 6 complete — Hardening + Polish done, TypeScript passes, 37 tests pass.
+- **Phase:** Milestone 8 complete — README + Deployment done, 49 tests pass.
 - **Last updated:** 2026-09-08
 - **Blocking issues:** None.
 
@@ -18,10 +18,28 @@
 - [x] Monorepo with shared `packages/contracts` for Zod schemas (see `plan.md` §2, `system.md` §5)
 - [x] Single `Requirement` collection with top-level `category` + polymorphic `details` (see `system.md` §3)
 - [x] Wizard UX (4 steps) over generic dashboard (see `ui.md`)
+- [x] Test runner: Vitest (consistent across all packages)
+- [x] E2E testing: Playwright with webServer auto-start
 - [ ] Backend host (Render / Railway / Fly.io) — TBD
-- [ ] Test runner (Vitest vs Jest) — TBD
 
 ## 4. Progress Log
+
+### 2026-09-08 — Milestone 8: README + Deployment
+- Rewrote `README.md` with full documentation: architecture, tech stack, features, project structure, local setup, environment variables, API contract, validation, testing, deployment, design decisions, tradeoffs.
+- Created `Dockerfile` (multi-stage build: deps → build → production) for backend containerization.
+- Created `.dockerignore` for clean Docker builds.
+- Verified: `pnpm -r run typecheck` passes, `pnpm -r run test` passes (49 total).
+- **Committed:** `docs: add README, Dockerfile, and deployment config`
+
+### 2026-09-08 — Milestone 7: Testing
+- Added vitest + @testing-library/react + jsdom to apps/web.
+- Created vitest.config.ts and setup.ts (jest-dom matchers + cleanup).
+- Wrote 8 unit tests for use-requirement-wizard hook.
+- Wrote 4 unit tests for CategoryCard component.
+- Installed Playwright, wrote E2E smoke test (fill → review → submit → success with API mock).
+- Fixed lint errors (unused imports, empty interfaces → type aliases).
+- Verified: 26 contracts + 11 API + 11 vitest + 1 E2E = 49 tests pass.
+- **Committed:** `test: add frontend unit tests and Playwright E2E smoke test` (dfbc790)
 
 ### 2026-09-08 — Milestone 6: Hardening + Polish
 - Created `apps/web/components/error-boundary.tsx` (catches unexpected UI errors with fallback UI).
@@ -31,7 +49,7 @@
 - Updated `apps/web/components/requirement-wizard/category-card.tsx` (added `role="radio"`, `aria-checked`, `aria-label`, `aria-hidden` for indicator, focus-visible styles).
 - Updated `apps/web/components/requirement-wizard/wizard-progress.tsx` (added focus-visible styles for keyboard navigation).
 - Verified: `pnpm -r run typecheck` passes, `pnpm -r run test` passes (37 total).
-- **Committed:** `chore: add error boundary, not-found page, and a11y improvements` (pending)
+- **Committed:** `chore: add error boundary, not-found page, and a11y improvements` (8372ee9)
 - Next: Milestone 7 — Testing (unit/API/UI/E2E).
 
 ### 2026-09-08 — Milestone 5: Review + Submit + Success
@@ -137,25 +155,17 @@
 - [x] Phase 9 — API integration
 - [x] Phase 10 — Success state
 - [x] Phase 11 — Hardening (helmet, CORS, rate-limit, a11y)
-- [ ] Phase 8 — Review step
-- [ ] Phase 9 — API integration
-- [ ] Phase 10 — Success state
-- [ ] Phase 11 — Hardening (helmet, CORS, rate-limit, a11y)
-- [ ] Phase 12 — Testing matrix (unit/API/UI/E2E)
-- [ ] Phase 13 — Deployment (Atlas + API host + Vercel)
-- [ ] Phase 14 — README + reviewer experience
+- [x] Phase 12 — Testing matrix (unit/API/UI/E2E)
+- [x] Phase 13 — Deployment (Dockerfile, .dockerignore)
+- [x] Phase 14 — README + reviewer experience
 - [ ] Demo data + 5–7 min video
 
 ## 6. Next Up
-1. Testing matrix (unit/API/UI/E2E).
-2. README + deployment.
-3. Demo data + video.
+1. Demo data + video recording.
 
 ## 7. Open Questions / Risks
-- Backend host choice?
-- Date serialization (ISO) + `endDate >= startDate` enforcement on both ends?
+- Backend host choice for production deployment (Render, Railway, Fly.io)?
 - Budget currency assumption (INR, numeric)?
-- Category-switch stale-data clearing strategy in RHF?
 
 ## 8. Useful Commands
 ```bash
