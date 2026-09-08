@@ -26,6 +26,7 @@ export function RequirementWizard() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string>("");
   const toastTimer = useRef<NodeJS.Timeout | null>(null);
+  const draftRestored = useRef(false);
 
   const showToast = useCallback((msg: string) => {
     setToastMsg(msg);
@@ -98,7 +99,6 @@ export function RequirementWizard() {
   const handleSubmit = async () => {
     if (!wizard.category) return;
     setIsSubmitting(true);
-    setSubmitError(null);
 
     const input: CreateRequirementInput = {
       category: wizard.category,
@@ -126,8 +126,8 @@ export function RequirementWizard() {
       });
       localStorage.removeItem(DRAFT_KEY);
       setSavedAt("");
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } catch {
+      showToast("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -161,6 +161,8 @@ export function RequirementWizard() {
 
   // Restore draft
   useEffect(() => {
+    if (draftRestored.current) return;
+    draftRestored.current = true;
     try {
       const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || "{}");
       if (draft.name) wizard.updateEvent({ name: draft.name });
@@ -171,7 +173,8 @@ export function RequirementWizard() {
       if (draft.venue) wizard.updateEvent({ venue: draft.venue });
       if (draft.category) wizard.setCategory(draft.category);
     } catch { /* ignore storage errors */ }
-  }, [wizard]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const stepIndex = wizard.stepIndex;
   const progressPct = Math.round(((stepIndex + 1) / STEPS.length) * 100);
