@@ -10,7 +10,7 @@
 - **Source docs:** `plan.md`, `system.md`, `ui.md`
 
 ## 2. Current Status
-- **Phase:** Milestone 4 complete — Frontend wizard (Steps 1–3) implemented, TypeScript passes.
+- **Phase:** Milestone 5 complete — Review step, API submission, loading/error/success states implemented, TypeScript passes.
 - **Last updated:** 2026-09-08
 - **Blocking issues:** None.
 
@@ -22,6 +22,14 @@
 - [ ] Test runner (Vitest vs Jest) — TBD
 
 ## 4. Progress Log
+
+### 2026-09-08 — Milestone 5: Review + Submit + Success
+- Created `apps/web/lib/api-client.ts` (createRequirement function, error handling).
+- Created `apps/web/components/requirement-wizard/step-review.tsx` (review summary with event, category, details, edit buttons per section).
+- Updated `apps/web/components/requirement-wizard/requirement-wizard.tsx` (submission flow with loading spinner, error message, success state with requirement ID).
+- Success state shows category, ID, status, and "Create another requirement" action.
+- Verified: `pnpm -r run typecheck` passes, `pnpm -r run test` passes (37 total).
+- Next: Milestone 6 — Hardening + Polish (a11y, responsive, error boundary, metadata).
 
 ### 2026-09-08 — Milestone 4: Frontend Wizard (Steps 1–3)
 - Created Tailwind v4 CSS with shadcn/ui design tokens (`apps/web/app/globals.css`).
@@ -38,6 +46,7 @@
 - Updated `apps/web/app/layout.tsx` (metadata, globals.css import).
 - Updated `apps/web/app/page.tsx` (renders RequirementWizard).
 - Verified: `pnpm -r run typecheck` passes, `pnpm -r run test` passes (37 total).
+- **Committed:** `feat: build requirement wizard with category-aware steps` (bce4354)
 - Next: Milestone 5 — Review step + API submission + success state.
 
 ### 2026-09-08 — Milestone 3: Express Backend API
@@ -112,6 +121,9 @@
 - [x] Phase 5 — Backend API (`POST /api/v1/requirements`, `GET /:id`, health, error envelope)
 - [x] Phase 6 — Frontend wizard Step 1
 - [x] Phase 7 — Steps 2–3 category-aware
+- [x] Phase 8 — Review step
+- [x] Phase 9 — API integration
+- [x] Phase 10 — Success state
 - [ ] Phase 8 — Review step
 - [ ] Phase 9 — API integration
 - [ ] Phase 10 — Success state
@@ -122,9 +134,9 @@
 - [ ] Demo data + 5–7 min video
 
 ## 6. Next Up
-1. Build Step 4 — Review + Submit + Success state.
-2. Create API client module.
-3. Connect submission to backend API.
+1. Hardening + polish (a11y, responsive, error boundary).
+2. Testing matrix (unit/API/UI/E2E).
+3. README + deployment.
 
 ## 7. Open Questions / Risks
 - Backend host choice?

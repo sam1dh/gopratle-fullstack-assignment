@@ -5,14 +5,23 @@ import { WizardProgress } from "./wizard-progress";
 import { StepBasics } from "./step-basics";
 import { StepRequirements } from "./step-requirements";
 import { StepDetails } from "./step-details";
+import { StepReview } from "./step-review";
 import { Button } from "../ui/button";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { STEPS } from "../../types/wizard";
 import { useState, useCallback } from "react";
+import { createRequirement } from "../../lib/api-client";
+import type { CreateRequirementInput } from "@gopratle/contracts";
 
 export function RequirementWizard() {
   const wizard = useRequirementWizard();
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState<{
+    id: string;
+    category: string;
+  } | null>(null);
 
   const validateStep = useCallback((): boolean => {
     const newErrors: Record<string, string> = {};
@@ -90,7 +99,81 @@ export function RequirementWizard() {
     }
   };
 
-  const currentStepConfig = STEPS[wizard.stepIndex];
+  const handleSubmit = async () => {
+    if (!wizard.category) return;
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    const input: CreateRequirementInput = {
+      category: wizard.category,
+      event: {
+        name: wizard.event.name || "",
+        type: wizard.event.type || "",
+        startDate: wizard.event.startDate || "",
+        endDate: wizard.event.endDate || "",
+        location: wizard.event.location || "",
+        venue: wizard.event.venue || undefined,
+      },
+      details:
+        wizard.category === "planner"
+          ? wizard.plannerDetails
+          : wizard.category === "performer"
+            ? wizard.performerDetails
+            : wizard.crewDetails,
+    } as CreateRequirementInput;
+
+    try {
+      const response = await createRequirement(input);
+      setSubmitSuccess({
+        id: response.data.id,
+        category: response.data.category,
+      });
+    } catch (err) {
+      setSubmitError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCreateAnother = () => {
+    window.location.reload();
+  };
+
+  if (submitSuccess) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="max-w-md w-full text-center space-y-6 px-4">
+          <CheckCircle2 className="h-16 w-16 text-success mx-auto" />
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold tracking-tight">
+              Requirement submitted
+            </h1>
+            <p className="text-muted-foreground">
+              Your {submitSuccess.category} requirement has been created successfully.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Requirement ID</p>
+            <p className="font-mono text-sm font-medium bg-muted px-4 py-2 rounded-md">
+              {submitSuccess.id}
+            </p>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Status</p>
+            <p className="text-sm font-medium capitalize">Submitted</p>
+          </div>
+          <Button onClick={handleCreateAnother} className="mt-4">
+            Create another requirement
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -151,17 +234,28 @@ export function RequirementWizard() {
                 />
               )}
 
-              {wizard.step === "review" && (
-                <div className="space-y-8">
-                  <div className="space-y-2">
-                    <h2 className="text-2xl font-bold tracking-tight">
-                      Review your requirement
-                    </h2>
-                    <p className="text-muted-foreground">
-                      Check everything before submitting.
+              {wizard.step === "review" && wizard.category && (
+                <StepReview
+                  category={wizard.category}
+                  event={wizard.event}
+                  plannerDetails={wizard.plannerDetails}
+                  performerDetails={wizard.performerDetails}
+                  crewDetails={wizard.crewDetails}
+                  onEditStep={(step) => {
+                    wizard.goToStep(step);
+                  }}
+                />
+              )}
+
+              {submitError && (
+                <div className="mt-6 p-4 rounded-md bg-destructive/10 border border-destructive/20 flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-destructive">
+                      Submission failed
                     </p>
+                    <p className="text-sm text-muted-foreground mt-1">{submitError}</p>
                   </div>
-                  <p className="text-muted-foreground">Review step — coming in Milestone 5.</p>
                 </div>
               )}
 
@@ -170,16 +264,33 @@ export function RequirementWizard() {
                   type="button"
                   variant="outline"
                   onClick={wizard.goBack}
-                  disabled={!wizard.canGoBack}
+                  disabled={!wizard.canGoBack || isSubmitting}
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
                 </Button>
 
-                <Button type="button" onClick={handleNext} disabled={wizard.isLastStep}>
-                  {wizard.isLastStep ? "Submit" : "Continue"}
-                  {!wizard.isLastStep && <ArrowRight className="h-4 w-4 ml-2" />}
-                </Button>
+                {wizard.isLastStep ? (
+                  <Button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      "Submit"
+                    )}
+                  </Button>
+                ) : (
+                  <Button type="button" onClick={handleNext}>
+                    Continue
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                )}
               </div>
             </div>
           </main>
