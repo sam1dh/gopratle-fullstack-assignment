@@ -2,7 +2,6 @@
 
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Textarea } from "../ui/textarea";
 import { CategoryCard } from "./category-card";
 import type { Category, EventInput } from "@gopratle/contracts";
 
