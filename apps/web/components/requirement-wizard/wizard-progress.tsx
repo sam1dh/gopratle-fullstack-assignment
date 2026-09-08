@@ -28,7 +28,7 @@ export function WizardProgress({ currentStep, onStepClick }: WizardProgressProps
                 onClick={() => isClickable && onStepClick?.(s.id)}
                 disabled={!isClickable}
                 className={cn(
-                  "flex items-center gap-3 text-left w-full",
+                  "flex items-center gap-3 text-left w-full rounded-md py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   isClickable ? "cursor-pointer" : "cursor-default"
                 )}
               >

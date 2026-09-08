@@ -22,7 +22,14 @@ export function CategoryCard({ category, isSelected, onSelect }: CategoryCardPro
   const info = CATEGORY_INFO[category];
 
   return (
-    <button type="button" onClick={() => onSelect(category)} className="w-full text-left">
+    <button
+      type="button"
+      role="radio"
+      aria-checked={isSelected}
+      aria-label={info.title}
+      onClick={() => onSelect(category)}
+      className="w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg"
+    >
       <Card
         className={cn(
           "p-5 transition-all hover:border-primary/50 hover:shadow-md",
@@ -49,6 +56,7 @@ export function CategoryCard({ category, isSelected, onSelect }: CategoryCardPro
               "h-5 w-5 shrink-0 rounded-full border-2 flex items-center justify-center mt-1",
               isSelected ? "border-primary" : "border-border"
             )}
+            aria-hidden="true"
           >
             {isSelected && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
           </span>

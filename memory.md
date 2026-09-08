@@ -10,7 +10,7 @@
 - **Source docs:** `plan.md`, `system.md`, `ui.md`
 
 ## 2. Current Status
-- **Phase:** Milestone 5 complete — Review step, API submission, loading/error/success states implemented, TypeScript passes.
+- **Phase:** Milestone 6 complete — Hardening + Polish done, TypeScript passes, 37 tests pass.
 - **Last updated:** 2026-09-08
 - **Blocking issues:** None.
 
@@ -23,12 +23,24 @@
 
 ## 4. Progress Log
 
+### 2026-09-08 — Milestone 6: Hardening + Polish
+- Created `apps/web/components/error-boundary.tsx` (catches unexpected UI errors with fallback UI).
+- Created `apps/web/app/providers.tsx` (client wrapper for error boundary).
+- Created `apps/web/app/not-found.tsx` (404 page with "Go home" link).
+- Updated `apps/web/app/layout.tsx` (added Providers wrapper, enhanced metadata).
+- Updated `apps/web/components/requirement-wizard/category-card.tsx` (added `role="radio"`, `aria-checked`, `aria-label`, `aria-hidden` for indicator, focus-visible styles).
+- Updated `apps/web/components/requirement-wizard/wizard-progress.tsx` (added focus-visible styles for keyboard navigation).
+- Verified: `pnpm -r run typecheck` passes, `pnpm -r run test` passes (37 total).
+- **Committed:** `chore: add error boundary, not-found page, and a11y improvements` (pending)
+- Next: Milestone 7 — Testing (unit/API/UI/E2E).
+
 ### 2026-09-08 — Milestone 5: Review + Submit + Success
 - Created `apps/web/lib/api-client.ts` (createRequirement function, error handling).
 - Created `apps/web/components/requirement-wizard/step-review.tsx` (review summary with event, category, details, edit buttons per section).
 - Updated `apps/web/components/requirement-wizard/requirement-wizard.tsx` (submission flow with loading spinner, error message, success state with requirement ID).
 - Success state shows category, ID, status, and "Create another requirement" action.
 - Verified: `pnpm -r run typecheck` passes, `pnpm -r run test` passes (37 total).
+- **Committed:** `feat: add review step, API submission, and success state` (b648e86)
 - Next: Milestone 6 — Hardening + Polish (a11y, responsive, error boundary, metadata).
 
 ### 2026-09-08 — Milestone 4: Frontend Wizard (Steps 1–3)
@@ -124,6 +136,7 @@
 - [x] Phase 8 — Review step
 - [x] Phase 9 — API integration
 - [x] Phase 10 — Success state
+- [x] Phase 11 — Hardening (helmet, CORS, rate-limit, a11y)
 - [ ] Phase 8 — Review step
 - [ ] Phase 9 — API integration
 - [ ] Phase 10 — Success state
@@ -134,9 +147,9 @@
 - [ ] Demo data + 5–7 min video
 
 ## 6. Next Up
-1. Hardening + polish (a11y, responsive, error boundary).
-2. Testing matrix (unit/API/UI/E2E).
-3. README + deployment.
+1. Testing matrix (unit/API/UI/E2E).
+2. README + deployment.
+3. Demo data + video.
 
 ## 7. Open Questions / Risks
 - Backend host choice?
