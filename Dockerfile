@@ -26,8 +26,12 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=build /app/apps/api/dist ./apps/api/dist
 COPY --from=build /app/apps/api/package.json ./apps/api/
+COPY --from=build /app/packages/contracts/dist ./packages/contracts/dist
 COPY --from=build /app/packages/contracts/src ./packages/contracts/src
 COPY --from=build /app/packages/contracts/package.json ./packages/contracts/
+
+# Patch contracts package.json to point to dist (production)
+RUN sed -i 's|"./src/index.ts"|"./dist/index.js"|g' packages/contracts/package.json
 
 WORKDIR /app/apps/api
 ENV NODE_ENV=production
