@@ -47,6 +47,28 @@ A polished multi-step requirement posting experience for event planners, perform
 - **Responsive** — Works on mobile and desktop
 - **Tested** — 49 tests across unit, API, component, and E2E layers
 
+## End-to-End Flow
+
+**Step 1 — Event Basics:** name, type, dates, Google Places location, venue, and category selector.
+
+![Step 1 — Event Basics](docs/screenshots/02-basics-filled.png)
+
+**Step 2 — Category Requirements (Planner):** guest count, budget, and services adapt to the chosen category.
+
+![Step 2 — Requirements](docs/screenshots/03-requirements.png)
+
+**Step 3 — Details:** theme, special requirements, and portfolio links per category.
+
+![Step 3 — Details](docs/screenshots/04-details.png)
+
+**Step 4 — Review & Submit:** confirm everything, submit, and get a reference ID back.
+
+![Step 4 — Review](docs/screenshots/05-review.png)
+
+**Success:** the requirement is stored in MongoDB, categorised under the selected type.
+
+![Success](docs/screenshots/06-success.png)
+
 ## Project Structure
 
 ```
