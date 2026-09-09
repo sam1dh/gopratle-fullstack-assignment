@@ -34,12 +34,16 @@ const PERFORMER_FIELDS: FieldDef[] = [
   { path: "details.performerCount", label: "performer count", type: "number", keywords: ["performer count", "performers", "artists", "kalakar"] },
   { path: "details.performanceDurationMinutes", label: "duration", type: "number", keywords: ["duration", "minutes", "hours", "hour", "samay", "avdhi"] },
   { path: "details.budget", label: "budget", type: "number", keywords: ["budget", "keemat", "daam", "paisa"] },
+  { path: "details.technicalRequirements", label: "technical requirements", type: "text", keywords: ["technical requirement", "technical", "tech requirement", "takneeki"] },
+  { path: "details.portfolioUrl", label: "portfolio link", type: "text", keywords: ["portfolio link", "portfolio", "link", "website", "url"] },
 ];
 
 const PLANNER_FIELDS: FieldDef[] = [
   { path: "details.guestCount", label: "guest count", type: "number", keywords: ["guest count", "guests", "mehmaan", "people", "attendees"] },
   { path: "details.servicesNeeded", label: "services needed", type: "list", keywords: ["services", "service", "seva"] },
   { path: "details.budget", label: "budget", type: "number", keywords: ["budget", "keemat", "daam", "paisa"] },
+  { path: "details.themeOrStyle", label: "theme or style", type: "text", keywords: ["theme or style", "theme", "style", "theem"] },
+  { path: "details.specialRequirements", label: "special requirements", type: "text", keywords: ["special requirement", "special", "notes", "note", "additional", "extra", "vishesh"] },
 ];
 
 const CREW_FIELDS: FieldDef[] = [
@@ -49,6 +53,8 @@ const CREW_FIELDS: FieldDef[] = [
   { path: "details.shiftStart", label: "shift start", type: "time", keywords: ["shift start", "start time"] },
   { path: "details.shiftEnd", label: "shift end", type: "time", keywords: ["shift end", "end time"] },
   { path: "details.budget", label: "budget", type: "number", keywords: ["budget", "keemat", "daam", "paisa"] },
+  { path: "details.equipmentRequired", label: "equipment required", type: "text", keywords: ["equipment required", "equipment", "gear", "upkaran"] },
+  { path: "details.specialRequirements", label: "special requirements", type: "text", keywords: ["special requirement", "special", "notes", "note", "additional", "extra", "vishesh"] },
 ];
 
 const NUMBER_WORDS: Record<string, number> = {

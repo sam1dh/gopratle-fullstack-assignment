@@ -13,6 +13,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { createRequirement } from "../../lib/api-client";
 import { buildAssistantContext } from "../../lib/assistant-context";
 import { applyVoiceAction } from "../../lib/voice-actions";
+import { normalizeActionField } from "../../lib/voice-actions";
 import { useVoiceAssistant } from "../../hooks/useVoiceAssistant";
 import { VoiceAssistant } from "../voice-assistant/VoiceAssistant";
 import { VoiceInspector } from "../voice-assistant/VoiceInspector";
@@ -53,9 +54,10 @@ export function RequirementWizard() {
     });
   }, []);
 
-  const validateStep = useCallback((stepOverride?: typeof wizard.step): boolean => {
+  // Pure step validation (no state writes) so the voice handler can check
+  // whether a fill completed the step without waiting on re-render.
+  const collectStepErrors = useCallback((step: typeof wizard.step): Record<string, string> => {
     const newErrors: Record<string, string> = {};
-    const step = stepOverride ?? wizard.step;
 
     if (step === "basics") {
       if (!wizard.event.name?.trim()) newErrors.name = "Event name is required";
@@ -103,8 +105,14 @@ export function RequirementWizard() {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   }, [wizard]);
+
+  const validateStep = useCallback((stepOverride?: typeof wizard.step): boolean => {
+    const newErrors = collectStepErrors(stepOverride ?? wizard.step);
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }, [collectStepErrors, wizard.step]);
 
   const handleNext = () => {
     if (validateStep()) {
@@ -293,6 +301,13 @@ export function RequirementWizard() {
       }),
     onError: (msg) => showToast(msg),
     onAction: (action) => {
+      const stepBefore = wizard.step;
+      // Snapshot missing fields before the fill: if the voice fill lands on
+      // the last missing field, the step is now complete.
+      const missingBefore =
+        action.type === "SUGGEST_FIELD_VALUE" && stepBefore !== "review"
+          ? Object.keys(collectStepErrors(stepBefore))
+          : [];
       const toast = applyVoiceAction(
         {
           category: wizard.category,
@@ -311,6 +326,23 @@ export function RequirementWizard() {
         action
       );
       if (toast) showToast(toast);
+      // Auto-advance: a successful voice fill completed the step.
+      if (action.type === "SUGGEST_FIELD_VALUE" && toast && missingBefore.length === 1) {
+        const normalized =
+          typeof action.field === "string"
+            ? normalizeActionField(action.field, wizard.category)
+            : null;
+        const key = normalized
+          ? normalized === "category"
+            ? "category"
+            : normalized.replace(/^(event|details)\./, "")
+          : null;
+        if (key && missingBefore[0] === key) {
+          wizard.goNext();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          showToast("Step complete — moved ahead.");
+        }
+      }
     },
   });
 

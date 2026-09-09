@@ -234,3 +234,59 @@ describe("parseVoiceCommand field disambiguation", () => {
     ).toBe("20:00");
   });
 });
+
+describe("parseVoiceCommand details-step fields", () => {
+  const plannerCtx: RequirementAssistantContext = {
+    currentStep: "details",
+    category: "planner",
+    event: {},
+    categoryDetails: {},
+    validationErrors: [],
+    completedFields: [],
+    missingRequiredFields: [],
+  };
+  const performerCtx: RequirementAssistantContext = { ...plannerCtx, category: "performer" };
+  const crewCtx: RequirementAssistantContext = { ...plannerCtx, category: "crew" };
+
+  it("fills planner special requirements and theme", async () => {
+    const { parseVoiceCommand } = await import("../services/voice-commands.js");
+    expect(
+      parseVoiceCommand("set special requirements to veg only", plannerCtx, "en")?.action
+    ).toEqual({
+      type: "SUGGEST_FIELD_VALUE",
+      field: "details.specialRequirements",
+      value: "veg only",
+    });
+    expect(
+      parseVoiceCommand("set theme to royal wedding", plannerCtx, "en")?.action?.field
+    ).toBe("details.themeOrStyle");
+  });
+
+  it("fills performer technical requirements and portfolio", async () => {
+    const { parseVoiceCommand } = await import("../services/voice-commands.js");
+    expect(
+      parseVoiceCommand("set technical requirements to 4 mics", performerCtx, "en")?.action
+    ).toEqual({
+      type: "SUGGEST_FIELD_VALUE",
+      field: "details.technicalRequirements",
+      value: "4 mics",
+    });
+    expect(
+      parseVoiceCommand("set portfolio to my videos", performerCtx, "en")?.action?.field
+    ).toBe("details.portfolioUrl");
+  });
+
+  it("fills crew equipment and special requirements", async () => {
+    const { parseVoiceCommand } = await import("../services/voice-commands.js");
+    expect(
+      parseVoiceCommand("set equipment to spare cables", crewCtx, "en")?.action
+    ).toEqual({
+      type: "SUGGEST_FIELD_VALUE",
+      field: "details.equipmentRequired",
+      value: "spare cables",
+    });
+    expect(
+      parseVoiceCommand("set note to no smoking on set", crewCtx, "en")?.action?.field
+    ).toBe("details.specialRequirements");
+  });
+});
