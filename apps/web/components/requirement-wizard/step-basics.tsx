@@ -36,10 +36,10 @@ const BuildingIcon = (
   </svg>
 );
 
-function FieldError({ message }: { message?: string }) {
+function FieldError({ field, message }: { field: string; message?: string }) {
   if (!message) return null;
   return (
-    <p className="flex gap-[6px] items-center text-destructive text-[13px] font-medium mt-[7px] mx-[2px]">
+    <p data-error-field={field} className="flex gap-[6px] items-center text-destructive text-[13px] font-medium mt-[7px] mx-[2px]">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
         <circle cx="12" cy="12" r="10" />
         <path d="M12 8v4M12 16h.01" />
@@ -76,7 +76,7 @@ export function StepBasics({
             value={event.name || ""}
             onChange={(e) => onEventChange({ name: e.target.value })}
           />
-          <FieldError message={errors.name} />
+          <FieldError field="name" message={errors.name} />
         </div>
       </div>
 
@@ -106,7 +106,7 @@ export function StepBasics({
             <option>Private Party</option>
             <option>Other</option>
           </select>
-          <FieldError message={errors.type} />
+          <FieldError field="type" message={errors.type} />
         </div>
         <div>
           <Label htmlFor="venue" className="block text-[13.5px] font-semibold text-foreground mb-[7px]">
@@ -134,7 +134,7 @@ export function StepBasics({
             value={event.startDate || ""}
             onChange={(e) => onEventChange({ startDate: e.target.value })}
           />
-          <FieldError message={errors.startDate} />
+          <FieldError field="startDate" message={errors.startDate} />
         </div>
         <div>
           <Label htmlFor="endDate" className="block text-[13.5px] font-semibold text-foreground mb-[7px]">
@@ -147,7 +147,7 @@ export function StepBasics({
             value={event.endDate || ""}
             onChange={(e) => onEventChange({ endDate: e.target.value })}
           />
-          <FieldError message={errors.endDate} />
+          <FieldError field="endDate" message={errors.endDate} />
         </div>
       </div>
 
@@ -163,7 +163,7 @@ export function StepBasics({
             value={event.location || ""}
             onChange={(location) => onEventChange({ location })}
           />
-          <FieldError message={errors.location} />
+          <FieldError field="location" message={errors.location} />
         </div>
       </div>
 
@@ -181,7 +181,7 @@ export function StepBasics({
           />
         ))}
       </div>
-      <FieldError message={errors.category} />
+      <FieldError field="category" message={errors.category} />
     </div>
   );
 }

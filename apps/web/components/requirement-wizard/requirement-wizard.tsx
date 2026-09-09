@@ -40,10 +40,24 @@ export function RequirementWizard() {
     toastTimer.current = setTimeout(() => setToastMsg(null), 3400);
   }, []);
 
-  const validateStep = useCallback((): boolean => {
-    const newErrors: Record<string, string> = {};
+  // Bring the first failing field into view so users (and voice users)
+  // always know what is blocking them. Runs after errors paint.
+  const scrollToFirstError = useCallback(() => {
+    requestAnimationFrame(() => {
+      const el = document.querySelector("[data-error-field]");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        const input = el.parentElement?.querySelector("input, select, textarea, button");
+        if (input instanceof HTMLElement) input.focus({ preventScroll: true });
+      }
+    });
+  }, []);
 
-    if (wizard.step === "basics") {
+  const validateStep = useCallback((stepOverride?: typeof wizard.step): boolean => {
+    const newErrors: Record<string, string> = {};
+    const step = stepOverride ?? wizard.step;
+
+    if (step === "basics") {
       if (!wizard.event.name?.trim()) newErrors.name = "Event name is required";
       if (!wizard.event.type?.trim()) newErrors.type = "Event type is required";
       if (!wizard.event.startDate) newErrors.startDate = "Start date is required";
@@ -58,7 +72,7 @@ export function RequirementWizard() {
       }
     }
 
-    if (wizard.step === "requirements" && wizard.category) {
+    if (step === "requirements" && wizard.category) {
       if (wizard.category === "planner") {
         if (!wizard.plannerDetails.guestCount || wizard.plannerDetails.guestCount < 1)
           newErrors.guestCount = "Guest count must be at least 1";
@@ -99,6 +113,7 @@ export function RequirementWizard() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       showToast("Please fix the highlighted fields to continue.");
+      scrollToFirstError();
     }
   };
 
@@ -164,7 +179,10 @@ export function RequirementWizard() {
     const fullCheck = validateEntireForm();
     if (!fullCheck.ok) {
       wizard.goToStep(fullCheck.step, { force: true });
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      // Populate that step's field errors, then scroll to the first one
+      // after the step transition paints.
+      validateStep(fullCheck.step);
+      setTimeout(scrollToFirstError, 150);
       showToast(fullCheck.message);
       return;
     }

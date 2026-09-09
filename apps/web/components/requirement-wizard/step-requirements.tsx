@@ -14,10 +14,10 @@ interface StepRequirementsProps {
   errors: Record<string, string>;
 }
 
-function FieldError({ message }: { message?: string }) {
+function FieldError({ field, message }: { field: string; message?: string }) {
   if (!message) return null;
   return (
-    <p className="flex gap-[6px] items-center text-destructive text-[13px] font-medium mt-[7px] mx-[2px]">
+    <p data-error-field={field} className="flex gap-[6px] items-center text-destructive text-[13px] font-medium mt-[7px] mx-[2px]">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
         <circle cx="12" cy="12" r="10" />
         <path d="M12 8v4M12 16h.01" />
@@ -89,7 +89,7 @@ export function StepRequirements({
                 className="w-full h-[47px] border border-border-strong rounded-[var(--radius)] bg-white text-[15px] text-foreground pl-[41px] pr-[14px] placeholder:text-[#a6adbf] transition-[border-color,box-shadow] duration-150 hover:border-[#b9c1d2] focus:outline-none focus:border-primary focus:shadow-[0_0_0_4px_var(--ring)]"
               />
             </div>
-            <FieldError message={errors.guestCount} />
+            <FieldError field="guestCount" message={errors.guestCount} />
           </div>
           <div>
             <Label className="block text-[13.5px] font-semibold text-foreground mb-[7px]">Budget (INR) <span className="text-destructive">*</span></Label>
@@ -104,7 +104,7 @@ export function StepRequirements({
                 className="w-full h-[47px] border border-border-strong rounded-[var(--radius)] bg-white text-[15px] text-foreground pl-[34px] pr-[14px] placeholder:text-[#a6adbf] transition-[border-color,box-shadow] duration-150 hover:border-[#b9c1d2] focus:outline-none focus:border-primary focus:shadow-[0_0_0_4px_var(--ring)]"
               />
             </div>
-            <FieldError message={errors.budget} />
+            <FieldError field="budget" message={errors.budget} />
           </div>
         </div>
         <div className="grid gap-5 mb-5">
@@ -121,7 +121,7 @@ export function StepRequirements({
                 className="w-full h-[47px] border border-border-strong rounded-[var(--radius)] bg-white text-[15px] text-foreground pl-[41px] pr-[14px] placeholder:text-[#a6adbf] transition-[border-color,box-shadow] duration-150 hover:border-[#b9c1d2] focus:outline-none focus:border-primary focus:shadow-[0_0_0_4px_var(--ring)]"
               />
             </div>
-            <FieldError message={errors.servicesNeeded} />
+            <FieldError field="servicesNeeded" message={errors.servicesNeeded} />
           </div>
         </div>
       </div>
@@ -148,7 +148,7 @@ export function StepRequirements({
                 className="w-full h-[47px] border border-border-strong rounded-[var(--radius)] bg-white text-[15px] text-foreground pl-[41px] pr-[14px] placeholder:text-[#a6adbf] transition-[border-color,box-shadow] duration-150 hover:border-[#b9c1d2] focus:outline-none focus:border-primary focus:shadow-[0_0_0_4px_var(--ring)]"
               />
             </div>
-            <FieldError message={errors.performanceType} />
+            <FieldError field="performanceType" message={errors.performanceType} />
           </div>
           <div>
             <Label className="block text-[13.5px] font-semibold text-foreground mb-[7px]">Genre <span className="text-muted-foreground font-normal">(optional)</span></Label>
@@ -177,7 +177,7 @@ export function StepRequirements({
                 className="w-full h-[47px] border border-border-strong rounded-[var(--radius)] bg-white text-[15px] text-foreground pl-[41px] pr-[14px] placeholder:text-[#a6adbf] transition-[border-color,box-shadow] duration-150 hover:border-[#b9c1d2] focus:outline-none focus:border-primary focus:shadow-[0_0_0_4px_var(--ring)]"
               />
             </div>
-            <FieldError message={errors.performerCount} />
+            <FieldError field="performerCount" message={errors.performerCount} />
           </div>
           <div>
             <Label className="block text-[13.5px] font-semibold text-foreground mb-[7px]">Duration <span className="text-destructive">*</span></Label>
@@ -193,7 +193,7 @@ export function StepRequirements({
               />
               <span className="absolute right-[14px] text-[13px] font-semibold text-muted-foreground pointer-events-none">min</span>
             </div>
-            <FieldError message={errors.performanceDurationMinutes} />
+            <FieldError field="performanceDurationMinutes" message={errors.performanceDurationMinutes} />
           </div>
           <div>
             <Label className="block text-[13.5px] font-semibold text-foreground mb-[7px]">Budget <span className="text-destructive">*</span></Label>
@@ -208,7 +208,7 @@ export function StepRequirements({
                 className="w-full h-[47px] border border-border-strong rounded-[var(--radius)] bg-white text-[15px] text-foreground pl-[34px] pr-[14px] placeholder:text-[#a6adbf] transition-[border-color,box-shadow] duration-150 hover:border-[#b9c1d2] focus:outline-none focus:border-primary focus:shadow-[0_0_0_4px_var(--ring)]"
               />
             </div>
-            <FieldError message={errors.budget} />
+            <FieldError field="budget" message={errors.budget} />
           </div>
         </div>
       </div>
@@ -235,7 +235,7 @@ export function StepRequirements({
                 className="w-full h-[47px] border border-border-strong rounded-[var(--radius)] bg-white text-[15px] text-foreground pl-[41px] pr-[14px] placeholder:text-[#a6adbf] transition-[border-color,box-shadow] duration-150 hover:border-[#b9c1d2] focus:outline-none focus:border-primary focus:shadow-[0_0_0_4px_var(--ring)]"
               />
             </div>
-            <FieldError message={errors.crewRole} />
+            <FieldError field="crewRole" message={errors.crewRole} />
           </div>
           <div>
             <Label className="block text-[13.5px] font-semibold text-foreground mb-[7px]">Headcount <span className="text-destructive">*</span></Label>
@@ -250,7 +250,7 @@ export function StepRequirements({
                 className="w-full h-[47px] border border-border-strong rounded-[var(--radius)] bg-white text-[15px] text-foreground pl-[41px] pr-[14px] placeholder:text-[#a6adbf] transition-[border-color,box-shadow] duration-150 hover:border-[#b9c1d2] focus:outline-none focus:border-primary focus:shadow-[0_0_0_4px_var(--ring)]"
               />
             </div>
-            <FieldError message={errors.crewCount} />
+            <FieldError field="crewCount" message={errors.crewCount} />
           </div>
         </div>
         <div className="grid grid-cols-3 gap-[20px_18px] mb-5 max-[980px]:grid-cols-2 max-[520px]:grid-cols-1">
@@ -271,7 +271,7 @@ export function StepRequirements({
               <option value="intermediate">Intermediate</option>
               <option value="expert">Expert</option>
             </select>
-            <FieldError message={errors.experienceLevel} />
+            <FieldError field="experienceLevel" message={errors.experienceLevel} />
           </div>
           <div>
             <Label className="block text-[13.5px] font-semibold text-foreground mb-[7px]">Shift start <span className="text-destructive">*</span></Label>
@@ -281,7 +281,7 @@ export function StepRequirements({
               onChange={(e) => onCrewChange({ shiftStart: e.target.value })}
               className="w-full h-[47px] border border-border-strong rounded-[var(--radius)] bg-white text-[15px] text-foreground px-[14px] transition-[border-color,box-shadow] duration-150 hover:border-[#b9c1d2] focus:outline-none focus:border-primary focus:shadow-[0_0_0_4px_var(--ring)]"
             />
-            <FieldError message={errors.shiftStart} />
+            <FieldError field="shiftStart" message={errors.shiftStart} />
           </div>
           <div>
             <Label className="block text-[13.5px] font-semibold text-foreground mb-[7px]">Shift end <span className="text-destructive">*</span></Label>
@@ -291,7 +291,7 @@ export function StepRequirements({
               onChange={(e) => onCrewChange({ shiftEnd: e.target.value })}
               className="w-full h-[47px] border border-border-strong rounded-[var(--radius)] bg-white text-[15px] text-foreground px-[14px] transition-[border-color,box-shadow] duration-150 hover:border-[#b9c1d2] focus:outline-none focus:border-primary focus:shadow-[0_0_0_4px_var(--ring)]"
             />
-            <FieldError message={errors.shiftEnd} />
+            <FieldError field="shiftEnd" message={errors.shiftEnd} />
           </div>
         </div>
         <div className="grid gap-5 mb-5">
@@ -308,7 +308,7 @@ export function StepRequirements({
                 className="w-full h-[47px] border border-border-strong rounded-[var(--radius)] bg-white text-[15px] text-foreground pl-[34px] pr-[14px] placeholder:text-[#a6adbf] transition-[border-color,box-shadow] duration-150 hover:border-[#b9c1d2] focus:outline-none focus:border-primary focus:shadow-[0_0_0_4px_var(--ring)]"
               />
             </div>
-            <FieldError message={errors.budget} />
+            <FieldError field="budget" message={errors.budget} />
           </div>
         </div>
       </div>
