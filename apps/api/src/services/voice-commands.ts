@@ -186,6 +186,24 @@ function matchOption(value: string, options: string[]): string | null {
   return null;
 }
 
+// Longest-keyword-first: "performance type" must beat "type", otherwise the
+// generic event-type field swallows performer/crew specifics and valid
+// values fail option validation.
+function findField(fragment: string, fields: FieldDef[]): FieldDef | null {
+  const lower = fragment.toLowerCase();
+  let best: FieldDef | null = null;
+  let bestLen = -1;
+  for (const def of fields) {
+    for (const k of def.keywords) {
+      if (lower.includes(k) && k.length > bestLen) {
+        best = def;
+        bestLen = k.length;
+      }
+    }
+  }
+  return best;
+}
+
 function coerceValue(raw: string, def: FieldDef): unknown {
   const value = raw.replace(/^["'“”]+|["'“”]+$/g, "").trim();
   switch (def.type) {
@@ -351,7 +369,7 @@ export function parseVoiceCommand(
   // --- Focus field ---
   const focus = raw.match(/^(?:focus|click|tap|select the field|field)\s+(?:the\s+)?(.+)$/i);
   if (focus && !/^(category|planner|performer|crew)/i.test(focus[1])) {
-    const def = fields.find((f) => f.keywords.some((k) => lower(focus[1]).includes(k)));
+    const def = findField(focus[1], fields);
     if (def) {
       return {
         action: { type: "FOCUS_FIELD", field: domIdFor(def.path) },
@@ -364,7 +382,7 @@ export function parseVoiceCommand(
   // --- Set field: "set X to Y" ---
   const set = raw.match(/^(?:please\s+)?set\s+(?:the\s+)?(.+?)\s+to\s+(.+)$/i);
   if (set) {
-    const def = fields.find((f) => f.keywords.some((k) => lower(set[1]).includes(k)));
+    const def = findField(set[1], fields);
     if (!def) return null;
     const value = coerceValue(cleanSpoken(set[2]), def);
     if (value === null || value === undefined || value === "") return null;
@@ -378,7 +396,7 @@ export function parseVoiceCommand(
   const hindiSet = raw.match(/^(.+?)\s+(rakho|rakh do|kar do|set karo|bhar do)$/i);
   if (hindiSet) {
     const rest = lower(hindiSet[1]);
-    const def = fields.find((f) => f.keywords.some((k) => rest.includes(k)));
+    const def = findField(rest, fields);
     if (!def) return null;
     // Strip the field mention (case-insensitive) to isolate the value.
     let rawValue = hindiSet[1];

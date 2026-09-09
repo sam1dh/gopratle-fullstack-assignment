@@ -13,6 +13,7 @@ const envSchema = z.object({
   CARTESIA_API_KEY: z.string().optional(),
   CARTESIA_VOICE_ID: z.string().default("c894559e-d529-4d70-a6fb-3330ecf7ef6b"),
   CARTESIA_VOICE_ID_HI: z.string().default("c6bbc7d5-4b35-4d49-b1c6-4417019a61c1"),
+  SARVAM_API_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

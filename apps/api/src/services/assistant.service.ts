@@ -12,6 +12,7 @@ import { MockSTTProvider } from "../providers/stt/MockSTTProvider.js";
 import type { TTSProvider } from "../providers/tts/TTSProvider.js";
 import { MockTTSProvider } from "../providers/tts/MockTTSProvider.js";
 import { CartesiaTTSProvider } from "../providers/tts/CartesiaTTSProvider.js";
+import { SarvamTTSProvider } from "../providers/tts/SarvamTTSProvider.js";
 import { getEnv } from "../config/env.js";
 import { ApiError } from "../utils/api-error.js";
 import { parseVoiceCommand } from "./voice-commands.js";
@@ -45,31 +46,38 @@ function resolveFallbackLLM(primary: LLMProvider | null): LLMProvider | null {
   return null;
 }
 
-function resolveTTS(): TTSProvider {
+function resolveTTS(): TTSProvider[] {
+  const chain: TTSProvider[] = [];
   try {
     const env = getEnv();
     if (env.CARTESIA_API_KEY) {
-      return new CartesiaTTSProvider(env.CARTESIA_API_KEY, {
-        en: env.CARTESIA_VOICE_ID,
-        hi: env.CARTESIA_VOICE_ID_HI,
-      });
+      chain.push(
+        new CartesiaTTSProvider(env.CARTESIA_API_KEY, {
+          en: env.CARTESIA_VOICE_ID,
+          hi: env.CARTESIA_VOICE_ID_HI,
+        })
+      );
+    }
+    if (env.SARVAM_API_KEY) {
+      chain.push(new SarvamTTSProvider(env.SARVAM_API_KEY));
     }
   } catch {
-    // fall through to mock
+    // fall through
   }
-  return new MockTTSProvider();
+  if (chain.length === 0) chain.push(new MockTTSProvider());
+  return chain;
 }
 
 export class AssistantService {
   private readonly llm: LLMProvider | null;
   private readonly fallbackLLM: LLMProvider | null;
   private readonly stt: STTProvider;
-  private readonly tts: TTSProvider;
+  private readonly ttsChain: TTSProvider[];
 
   constructor(
     llm: LLMProvider | null = null,
     stt: STTProvider | null = null,
-    tts: TTSProvider | null = null,
+    tts: TTSProvider | TTSProvider[] | null = null,
     fallbackLLM: LLMProvider | null | undefined = undefined
   ) {
     // Browser SpeechRecognition is the real STT (no vendor key needed);
@@ -78,14 +86,14 @@ export class AssistantService {
     this.llm = primary;
     this.fallbackLLM = fallbackLLM === undefined ? resolveFallbackLLM(primary) : fallbackLLM;
     this.stt = stt ?? new MockSTTProvider();
-    this.tts = tts ?? resolveTTS();
+    this.ttsChain = Array.isArray(tts) ? tts : tts ? [tts] : resolveTTS();
   }
 
   providerNames(): { llm: string | null; stt: string; tts: string; fallbackLLM: string | null } {
     return {
       llm: this.llm?.name ?? null,
       stt: this.stt.name,
-      tts: this.tts.name,
+      tts: this.ttsChain.map((t) => t.name).join(" → "),
       fallbackLLM: this.fallbackLLM?.name ?? null,
     };
   }
@@ -163,8 +171,17 @@ export class AssistantService {
   }
 
   async speak(input: SpeakRequest) {
-    const result = await this.tts.synthesize(input.text, input.language ?? "en");
-    return { ...result, text: input.text };
+    let lastErr: unknown = null;
+    for (const tts of this.ttsChain) {
+      try {
+        const result = await tts.synthesize(input.text, input.language ?? "en");
+        return { ...result, text: input.text };
+      } catch (err) {
+        lastErr = err;
+        console.error(`[assistant] TTS ${tts.name} failed, trying next`);
+      }
+    }
+    throw lastErr ?? new ApiError(503, "No TTS provider available", "TTS_ERROR");
   }
 }
 

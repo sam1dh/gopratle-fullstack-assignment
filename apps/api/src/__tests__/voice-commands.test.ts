@@ -188,3 +188,49 @@ describe("parseVoiceCommand money words", () => {
     expect(out?.confirmation).toMatch(/50,000/);
   });
 });
+
+describe("parseVoiceCommand field disambiguation", () => {
+  const performerCtx: RequirementAssistantContext = {
+    currentStep: "requirements",
+    category: "performer",
+    event: {},
+    categoryDetails: {},
+    validationErrors: [],
+    completedFields: [],
+    missingRequiredFields: [],
+  };
+  const crewCtx: RequirementAssistantContext = { ...performerCtx, category: "crew" };
+
+  it("prefers performance type over event type", async () => {
+    const { parseVoiceCommand } = await import("../services/voice-commands.js");
+    const base = { ...performerCtx };
+    const out = parseVoiceCommand("set performance type to DJ", base, "en");
+    expect(out?.action).toEqual({
+      type: "SUGGEST_FIELD_VALUE",
+      field: "details.performanceType",
+      value: "DJ",
+    });
+  });
+
+  it("still maps bare type to event type", async () => {
+    const { parseVoiceCommand } = await import("../services/voice-commands.js");
+    const base = { ...performerCtx };
+    const out = parseVoiceCommand("set event type to Concert", base, "en");
+    expect(out?.action?.field).toBe("event.type");
+  });
+
+  it("maps crew specifics without event interference", async () => {
+    const { parseVoiceCommand } = await import("../services/voice-commands.js");
+    const base = { ...crewCtx };
+    expect(
+      parseVoiceCommand("set crew role to Grip", base, "en")?.action
+    ).toEqual({
+      type: "SUGGEST_FIELD_VALUE",
+      field: "details.crewRole",
+      value: "Grip",
+    });
+    expect(
+      parseVoiceCommand("set shift end to 8 pm", base, "en")?.action?.value
+    ).toBe("20:00");
+  });
+});
