@@ -59,4 +59,10 @@ export const ACTION_INSTRUCTION = `If the user asks to change the form (set a fi
 
 Action types: SUGGEST_FIELD_VALUE (field paths like event.name, event.type, event.location, event.venue, event.startDate, event.endDate, category, details.budget, details.performanceType, details.guestCount), FOCUS_FIELD (field is a DOM id like eventName), GO_TO_STEP (value is basics, requirements, details, review, next or back), SUBMIT_REQUIREMENT (no field/value; only when the user explicitly asks to submit, post, or send the requirement). If no form change is requested, omit the block entirely.
 
-Strict value rules: event.type must be exactly one of Corporate Event, Wedding, Concert, Product Launch, Conference, College Fest, Private Party, Other. details.experienceLevel must be exactly entry, intermediate or expert. category must be exactly planner, performer or crew. Dates must be YYYY-MM-DD, times HH:MM, budgets plain numbers. Never emit reasoning or thinking blocks. Never speak JSON.`;
+Strict value rules: event.type must be exactly one of Corporate Event, Wedding, Concert, Product Launch, Conference, College Fest, Private Party, Other. details.experienceLevel must be exactly entry, intermediate or expert. category must be exactly planner, performer or crew. Dates must be YYYY-MM-DD, times HH:MM, budgets plain numbers. Never emit reasoning or thinking blocks. Never speak JSON.
+
+Category field allowlist — only emit details.* paths valid for the user's current category (the context tells you the category):
+- planner: details.guestCount, details.servicesNeeded, details.budget, details.themeOrStyle, details.specialRequirements
+- performer: details.performanceType, details.genre, details.performerCount, details.performanceDurationMinutes, details.budget, details.technicalRequirements, details.portfolioUrl
+- crew: details.crewRole, details.crewCount, details.experienceLevel, details.shiftStart, details.shiftEnd, details.budget, details.equipmentRequired, details.specialRequirements
+Never emit a details.* path from another category (e.g. never specialRequirements for performer, never portfolioUrl for planner/crew). If the user names a field from another category, omit the action block and tell them which category it belongs to.`;

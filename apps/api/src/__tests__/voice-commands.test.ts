@@ -290,3 +290,29 @@ describe("parseVoiceCommand details-step fields", () => {
     ).toBe("details.specialRequirements");
   });
 });
+
+describe("parseVoiceCommand cross-category guidance", () => {
+  const performerCtx: RequirementAssistantContext = {
+    currentStep: "details",
+    category: "performer",
+    event: {},
+    categoryDetails: {},
+    validationErrors: [],
+    completedFields: [],
+    missingRequiredFields: [],
+  };
+
+  it("guides honestly when the field belongs to another category", async () => {
+    const { parseVoiceCommand } = await import("../services/voice-commands.js");
+    const out = parseVoiceCommand("set special requirements to veg only", performerCtx, "en");
+    expect(out?.action).toEqual({ type: "NONE" });
+    expect(out?.confirmation).toMatch(/planner|crew/i);
+  });
+
+  it("still returns null for completely unknown fields", async () => {
+    const { parseVoiceCommand } = await import("../services/voice-commands.js");
+    expect(
+      parseVoiceCommand("set spaceship to mars", performerCtx, "en")
+    ).toBeNull();
+  });
+});

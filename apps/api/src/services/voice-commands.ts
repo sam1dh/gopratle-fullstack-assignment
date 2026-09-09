@@ -389,7 +389,7 @@ export function parseVoiceCommand(
   const set = raw.match(/^(?:please\s+)?set\s+(?:the\s+)?(.+?)\s+to\s+(.+)$/i);
   if (set) {
     const def = findField(set[1], fields);
-    if (!def) return null;
+    if (!def) return crossCategoryGuidance(set[1], fields, language);
     const value = coerceValue(cleanSpoken(set[2]), def);
     if (value === null || value === undefined || value === "") return null;
     return {
@@ -403,7 +403,7 @@ export function parseVoiceCommand(
   if (hindiSet) {
     const rest = lower(hindiSet[1]);
     const def = findField(rest, fields);
-    if (!def) return null;
+    if (!def) return crossCategoryGuidance(rest, fields, language);
     // Strip the field mention (case-insensitive) to isolate the value.
     let rawValue = hindiSet[1];
     for (const k of def.keywords.sort((a, b) => b.length - a.length)) {
@@ -418,6 +418,43 @@ export function parseVoiceCommand(
   }
 
   return null;
+}
+
+// When the named field exists but belongs to another category, say so
+// honestly instead of letting the LLM invent an action the form will drop.
+function crossCategoryGuidance(
+  fragment: string,
+  currentFields: FieldDef[],
+  language: "en" | "hi"
+): { action: { type: "NONE" }; confirmation: string } | null {
+  const pools: { category: string; fields: FieldDef[] }[] = [
+    { category: "planner", fields: PLANNER_FIELDS },
+    { category: "performer", fields: PERFORMER_FIELDS },
+    { category: "crew", fields: CREW_FIELDS },
+  ];
+  const currentPaths = new Set(currentFields.map((f) => f.path));
+  let best: { def: FieldDef; category: string; len: number } | null = null;
+  for (const pool of pools) {
+    for (const def of pool.fields) {
+      if (currentPaths.has(def.path)) continue;
+      for (const k of def.keywords) {
+        if (fragment.toLowerCase().includes(k) && (!best || k.length > best.len)) {
+          best = { def, category: pool.category, len: k.length };
+        }
+      }
+    }
+  }
+  if (!best) return null;
+  const ownLabels = currentFields
+    .filter((f) => f.path.startsWith("details."))
+    .slice(0, 5)
+    .map((f) => f.label)
+    .join(", ");
+  const confirmation =
+    language === "hi"
+      ? `${best.def.label} ${best.category} ka field hai. Aap ${ownLabels} me se kuch keh sakte hain.`
+      : `${capitalize(best.def.label)} is a ${best.category} field. You can set ${ownLabels || "an event field"} here.`;
+  return { action: { type: "NONE" }, confirmation };
 }
 
 function domIdFor(path: string): string {

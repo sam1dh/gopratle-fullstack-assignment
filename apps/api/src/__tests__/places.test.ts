@@ -3,7 +3,6 @@ import request from "supertest";
 import { GooglePlacesProvider } from "../providers/places/GooglePlacesProvider.js";
 import {
   autocompletePlaces,
-  getPlaceDetails,
   clearPlacesCache,
 } from "../services/places.service.js";
 
