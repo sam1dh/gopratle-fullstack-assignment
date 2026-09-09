@@ -166,6 +166,13 @@ curl http://localhost:5000/health
 | `PORT` | No | `5000` | API server port |
 | `MONGODB_URI` | **Yes** | — | MongoDB connection string |
 | `FRONTEND_URL` | No | `http://localhost:3000` | Allowed CORS origin |
+| `GROQ_API_KEY` | No | — | Groq API key: primary voice LLM |
+| `GROQ_MODEL` | No | `qwen/qwen3.8-27b` | Groq model for assistant replies |
+| `OPENROUTER_API_KEY` | No | — | OpenRouter key: LLM fallback when Groq fails (no mock in chain) |
+| `OPENROUTER_MODEL` | No | `inclusionai/ling-3.0-flash-sante:free` | OpenRouter fallback model |
+| `GOOGLE_MAPS_API_KEY` | No | — | Google Places key for location autocomplete (server-side proxy; field works without it) |
+| `CARTESIA_API_KEY` | No | — | Cartesia API key for voice TTS (falls back to device speech) |
+| `CARTESIA_VOICE_ID` | No | `a0e99841-438c-4a64-b679-ae501e7d6091` | Cartesia voice ID |
 | `NEXT_PUBLIC_API_BASE_URL` | No | `http://localhost:5000` | API base URL for frontend |
 
 ## API Contract
@@ -251,6 +258,73 @@ Content-Type: application/json
 | 404 | Route not found |
 | 429 | Rate limited |
 | 500 | Server error |
+
+### Voice Assistant
+
+The assistant is voice-first — no chat UI. The floating microphone button
+drives `idle → listening → processing → speaking → idle`.
+
+```
+POST /api/v1/assistant/message
+Content-Type: application/json
+```
+
+```json
+{
+  "message": "What should I enter here?",
+  "context": {
+    "currentStep": "event-basics",
+    "category": "performer",
+    "currentField": "eventType",
+    "event": {},
+    "categoryDetails": {},
+    "validationErrors": []
+  }
+}
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "response": "Event type describes the kind of event you are organizing...",
+    "suggestedAction": { "type": "NONE" }
+  }
+}
+```
+
+```
+POST /api/v1/assistant/transcribe   # mock STT (browser SpeechRecognition is the real STT)
+POST /api/v1/assistant/speak        # Cartesia MP3, or mock payload when unconfigured
+```
+
+See `docs/voice-pipeline.md` for the full pipeline.
+
+### Location Autocomplete
+
+The Location field proxies Google Places through the backend so the key
+never reaches the browser (5-minute server cache, debounced requests).
+
+```
+GET /api/v1/places/autocomplete?input=Hyderabad&language=en
+GET /api/v1/places/:placeId?language=en
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "suggestions": [
+      {
+        "placeId": "ChIJx9Lr6tqZyzsRwvu6koO3k64",
+        "text": "Hyderabad, Telangana, India",
+        "mainText": "Hyderabad",
+        "secondaryText": "Telangana, India"
+      }
+    ]
+  }
+}
+```
 
 ## Validation
 

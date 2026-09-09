@@ -11,6 +11,11 @@ import { ArrowLeft, ArrowRight, CheckCircle2, AlertCircle, Send } from "lucide-r
 import { STEPS } from "../../types/wizard";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { createRequirement } from "../../lib/api-client";
+import { buildAssistantContext } from "../../lib/assistant-context";
+import { applyVoiceAction } from "../../lib/voice-actions";
+import { useVoiceAssistant } from "../../hooks/useVoiceAssistant";
+import { VoiceAssistant } from "../voice-assistant/VoiceAssistant";
+import { VoiceInspector } from "../voice-assistant/VoiceInspector";
 import type { CreateRequirementInput } from "@gopratle/contracts";
 
 const DRAFT_KEY = "gopratle.draft.v1";
@@ -27,6 +32,7 @@ export function RequirementWizard() {
   const [savedAt, setSavedAt] = useState<string>("");
   const toastTimer = useRef<NodeJS.Timeout | null>(null);
   const draftRestored = useRef(false);
+  const [currentField, setCurrentField] = useState<string | undefined>(undefined);
 
   const showToast = useCallback((msg: string) => {
     setToastMsg(msg);
@@ -96,8 +102,73 @@ export function RequirementWizard() {
     }
   };
 
+  // Full-form check mirroring the backend contract: event basics plus
+  // category details. Used at submit time because voice automation can
+  // set values on any step, bypassing per-step checks.
+  const validateEntireForm = ():
+    | { ok: true }
+    | { ok: false; step: "basics" | "requirements"; message: string } => {
+    if (!wizard.event.name?.trim()) return { ok: false, step: "basics", message: "Event name is required" };
+    if (!wizard.event.type?.trim()) return { ok: false, step: "basics", message: "Event type is required" };
+    if (!wizard.event.startDate) return { ok: false, step: "basics", message: "Start date is required" };
+    if (!wizard.event.endDate) return { ok: false, step: "basics", message: "End date is required" };
+    if (!wizard.event.location?.trim()) return { ok: false, step: "basics", message: "Location is required" };
+    if (!wizard.category) return { ok: false, step: "basics", message: "Please select a category" };
+    if (wizard.event.startDate && wizard.event.endDate) {
+      if (new Date(wizard.event.endDate) < new Date(wizard.event.startDate)) {
+        return { ok: false, step: "basics", message: "End date must be on or after start date" };
+      }
+    }
+    if (wizard.category === "planner") {
+      if (!wizard.plannerDetails.guestCount || wizard.plannerDetails.guestCount < 1)
+        return { ok: false, step: "requirements", message: "Guest count must be at least 1" };
+      if (!wizard.plannerDetails.servicesNeeded || wizard.plannerDetails.servicesNeeded.length === 0)
+        return { ok: false, step: "requirements", message: "At least one service is required" };
+      if (!wizard.plannerDetails.budget || wizard.plannerDetails.budget < 0)
+        return { ok: false, step: "requirements", message: "Budget is required" };
+    }
+    if (wizard.category === "performer") {
+      if (!wizard.performerDetails.performanceType?.trim())
+        return { ok: false, step: "requirements", message: "Performance type is required" };
+      if (!wizard.performerDetails.performerCount || wizard.performerDetails.performerCount < 1)
+        return { ok: false, step: "requirements", message: "Performer count must be at least 1" };
+      if (!wizard.performerDetails.performanceDurationMinutes || wizard.performerDetails.performanceDurationMinutes < 15)
+        return { ok: false, step: "requirements", message: "Minimum 15 minutes" };
+      if (!wizard.performerDetails.budget || wizard.performerDetails.budget < 0)
+        return { ok: false, step: "requirements", message: "Budget is required" };
+    }
+    if (wizard.category === "crew") {
+      if (!wizard.crewDetails.crewRole?.trim())
+        return { ok: false, step: "requirements", message: "Crew role is required" };
+      if (!wizard.crewDetails.crewCount || wizard.crewDetails.crewCount < 1)
+        return { ok: false, step: "requirements", message: "Crew count must be at least 1" };
+      if (!wizard.crewDetails.experienceLevel)
+        return { ok: false, step: "requirements", message: "Experience level is required" };
+      if (!wizard.crewDetails.shiftStart)
+        return { ok: false, step: "requirements", message: "Shift start is required" };
+      if (!wizard.crewDetails.shiftEnd)
+        return { ok: false, step: "requirements", message: "Shift end is required" };
+      if (!wizard.crewDetails.budget || wizard.crewDetails.budget < 0)
+        return { ok: false, step: "requirements", message: "Budget is required" };
+    }
+    return { ok: true };
+  };
+
   const handleSubmit = async () => {
     if (!wizard.category) return;
+
+    // Full-form validation before posting: voice automation can set values
+    // on any step, so step-by-step checks may have been bypassed.
+    // (Self-contained: the shared Zod schema cannot be bundled into the
+    // client, so the same rules are mirrored here.)
+    const fullCheck = validateEntireForm();
+    if (!fullCheck.ok) {
+      wizard.goToStep(fullCheck.step, { force: true });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      showToast(fullCheck.message);
+      return;
+    }
+
     setIsSubmitting(true);
 
     const input: CreateRequirementInput = {
@@ -126,8 +197,8 @@ export function RequirementWizard() {
       });
       localStorage.removeItem(DRAFT_KEY);
       setSavedAt("");
-    } catch {
-      showToast("Something went wrong. Please try again.");
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -176,6 +247,55 @@ export function RequirementWizard() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Track the focused field so the voice assistant knows "what should I put here?"
+  useEffect(() => {
+    const onFocusIn = (e: FocusEvent) => {
+      const el = e.target as HTMLElement | null;
+      const id =
+        (el?.getAttribute?.("id") as string | null) ||
+        (el?.getAttribute?.("name") as string | null) ||
+        undefined;
+      setCurrentField(id ?? undefined);
+    };
+    document.addEventListener("focusin", onFocusIn);
+    return () => document.removeEventListener("focusin", onFocusIn);
+  }, []);
+
+  const voice = useVoiceAssistant({
+    buildContext: () =>
+      buildAssistantContext({
+        step: wizard.step,
+        category: wizard.category,
+        event: wizard.event,
+        plannerDetails: wizard.plannerDetails,
+        performerDetails: wizard.performerDetails,
+        crewDetails: wizard.crewDetails,
+        errors,
+        currentField,
+      }),
+    onError: (msg) => showToast(msg),
+    onAction: (action) => {
+      const toast = applyVoiceAction(
+        {
+          category: wizard.category,
+          setCategory: wizard.setCategory,
+          updateEvent: wizard.updateEvent,
+          updatePlannerDetails: wizard.updatePlannerDetails,
+          updatePerformerDetails: wizard.updatePerformerDetails,
+          updateCrewDetails: wizard.updateCrewDetails,
+          goNext: wizard.goNext,
+          goBack: wizard.goBack,
+          goToStep: wizard.goToStep,
+          submit: () => {
+            void handleSubmit();
+          },
+        },
+        action
+      );
+      if (toast) showToast(toast);
+    },
+  });
+
   const stepIndex = wizard.stepIndex;
   const progressPct = Math.round(((stepIndex + 1) / STEPS.length) * 100);
 
@@ -202,7 +322,7 @@ export function RequirementWizard() {
             </p>
             <div className="grid gap-[10px] text-left mb-[30px]">
               {[
-                { title: "We&apos;re matching you", desc: "Verified pros matching your brief are being notified right now." },
+                { title: "We're matching you", desc: "Verified pros matching your brief are being notified right now." },
                 { title: "Quotes arrive in 24–48h", desc: "Compare offers side-by-side in your dashboard." },
                 { title: "Book with confidence", desc: "Secure payments, verified profiles, and full support until showtime." },
               ].map((item, i) => (
@@ -223,6 +343,8 @@ export function RequirementWizard() {
             </div>
           </div>
         </div>
+        <VoiceAssistant state={voice.state} errorMessage={voice.errorMessage} language={voice.language} continuous={voice.continuous} onToggle={voice.toggle} onLanguageChange={voice.setLanguage} />
+      <VoiceInspector exchange={voice.lastExchange} />
       </div>
     );
   }
@@ -260,8 +382,16 @@ export function RequirementWizard() {
             <p className="m-0 mb-[10px] text-[13px] leading-[1.55] text-foreground/60">
               Our event experts can help you frame the perfect brief in under 5 minutes.
             </p>
-            <a href="#" className="text-[13.5px] font-bold text-primary no-underline hover:underline" onClick={(e) => e.preventDefault()}>
-              Chat with us →
+            <a
+              href="#"
+              className="text-[13.5px] font-bold text-primary no-underline hover:underline"
+              onClick={(e) => {
+                e.preventDefault();
+                if (!voice.continuous) voice.toggle();
+                showToast("Voice assistant on — just speak, I'm listening.");
+              }}
+            >
+              Talk to us →
             </a>
           </div>
         </aside>
@@ -324,8 +454,9 @@ export function RequirementWizard() {
               />
             )}
 
-            {/* Action bar */}
-            <div className="sticky bottom-[-28px] mx-[-44px] mt-[6px] mb-[-28px] px-[44px] pt-5 pb-[26px] flex justify-between items-center gap-3 bg-gradient-to-b from-white/0 to-white rounded-b-[var(--radius-xl)] max-[980px]:mx-[-22px] max-[980px]:mb-[-22px] max-[980px]:px-[22px] max-[980px]:pb-[22px] max-[520px]:mx-[-16px] max-[520px]:mb-[-18px] max-[520px]:px-4 max-[520px]:pb-[18px]">
+            {/* Action bar: container is click-through so it never swallows
+                clicks meant for fields/cards underneath; buttons stay clickable */}
+            <div className="sticky bottom-[-28px] mx-[-44px] mt-[6px] mb-[-28px] px-[44px] pt-5 pb-[26px] flex justify-between items-center gap-3 bg-gradient-to-b from-white/0 to-white rounded-b-[var(--radius-xl)] pointer-events-none max-[980px]:mx-[-22px] max-[980px]:mb-[-22px] max-[980px]:px-[22px] max-[980px]:pb-[22px] max-[520px]:mx-[-16px] max-[520px]:mb-[-18px] max-[520px]:px-4 max-[520px]:pb-[18px]">
               <Button
                 type="button"
                 variant="ghost"
@@ -334,7 +465,7 @@ export function RequirementWizard() {
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
                 disabled={!wizard.canGoBack || isSubmitting}
-                className={wizard.stepIndex === 0 ? "invisible" : ""}
+                className={`${wizard.stepIndex === 0 ? "invisible" : ""} pointer-events-auto`}
               >
                 <ArrowLeft className="w-[17px] h-[17px] mr-[9px]" />
                 Back
@@ -349,12 +480,13 @@ export function RequirementWizard() {
                   onClick={handleSubmit}
                   disabled={isSubmitting}
                   isLoading={isSubmitting}
+                  className="pointer-events-auto"
                 >
                   {isSubmitting ? "Submitting…" : "Submit requirement"}
                   {!isSubmitting && <Send className="w-[17px] h-[17px] ml-[9px]" />}
                 </Button>
               ) : (
-                <Button type="button" onClick={handleNext}>
+                <Button type="button" onClick={handleNext} className="pointer-events-auto">
                   Continue
                   <ArrowRight className="w-[17px] h-[17px] ml-[9px]" />
                 </Button>
@@ -371,6 +503,10 @@ export function RequirementWizard() {
           <span>{toastMsg}</span>
         </div>
       )}
+
+      {/* Voice-first assistant: no chat UI, form stays primary */}
+      <VoiceAssistant state={voice.state} errorMessage={voice.errorMessage} language={voice.language} continuous={voice.continuous} onToggle={voice.toggle} onLanguageChange={voice.setLanguage} />
+      <VoiceInspector exchange={voice.lastExchange} />
     </div>
   );
 }

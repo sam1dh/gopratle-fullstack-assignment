@@ -3,6 +3,7 @@
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { CategoryCard } from "./category-card";
+import { LocationAutocomplete } from "./location-autocomplete";
 import type { Category, EventInput } from "@gopratle/contracts";
 
 interface StepBasicsProps {
@@ -155,12 +156,12 @@ export function StepBasics({
           <Label htmlFor="location" className="block text-[13.5px] font-semibold text-foreground mb-[7px]">
             Location <span className="text-destructive">*</span>
           </Label>
-          <Input
+          <LocationAutocomplete
             id="location"
             icon={LocationIcon}
             placeholder="e.g. Hyderabad, Telangana"
             value={event.location || ""}
-            onChange={(e) => onEventChange({ location: e.target.value })}
+            onChange={(location) => onEventChange({ location })}
           />
           <FieldError message={errors.location} />
         </div>

@@ -22,3 +22,39 @@ export {
   crewDetailsSchema,
   type CrewDetails,
 } from "./categories/index.js";
+
+export {
+  placeSuggestionSchema,
+  type PlaceSuggestion,
+  autocompleteQuerySchema,
+  type AutocompleteQuery,
+  autocompleteResponseSchema,
+  type AutocompleteResponse,
+  placeDetailsSchema,
+  type PlaceDetails,
+  placeDetailsResponseSchema,
+  type PlaceDetailsResponse,
+} from "./places.js";
+
+export {
+  assistantStepEnum,
+  type AssistantStep,
+  assistantLanguageEnum,
+  type AssistantLanguage,
+  assistantContextSchema,
+  type RequirementAssistantContext,
+  assistantActionSchema,
+  type AssistantAction,
+  assistantMessageRequestSchema,
+  type AssistantMessageRequest,
+  assistantMessageResponseSchema,
+  type AssistantMessageResponse,
+  transcribeRequestSchema,
+  type TranscribeRequest,
+  transcribeResponseSchema,
+  type TranscribeResponse,
+  speakRequestSchema,
+  type SpeakRequest,
+  speakResponseSchema,
+  type SpeakResponse,
+} from "./assistant.js";

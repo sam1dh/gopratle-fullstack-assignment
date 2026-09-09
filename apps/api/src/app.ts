@@ -7,6 +7,8 @@ import { errorHandler } from "./middleware/error-handler.js";
 import { notFound } from "./middleware/not-found.js";
 import healthRoutes from "./routes/health.routes.js";
 import requirementRoutes from "./routes/requirement.routes.js";
+import assistantRoutes from "./routes/assistant.routes.js";
+import placesRoutes from "./routes/places.routes.js";
 import { getEnv } from "./config/env.js";
 
 const app: Express = express();
@@ -39,6 +41,8 @@ app.use(
 
 app.use("/api/v1/health", healthRoutes);
 app.use("/api/v1/requirements", requirementRoutes);
+app.use("/api/v1/assistant", assistantRoutes);
+app.use("/api/v1/places", placesRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

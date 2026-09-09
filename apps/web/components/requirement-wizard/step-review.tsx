@@ -196,7 +196,7 @@ export function StepReview({
       <div className="flex gap-3 items-start mt-5 p-[14px_16px] rounded-[var(--radius)] bg-success-soft border border-emerald-200 text-[13.5px] text-[#065f46] leading-[1.55]">
         <CheckCircle2 className="w-[17px] h-[17px] text-success mt-[1px] shrink-0" />
         <span>
-          <b>What happens next?</b> Verified pros in your area will review your requirement and send quotes within 24–48 hours. You compare, chat, and book — all in one place.
+          <b>What happens next?</b> Verified pros in your area will look over your request and send quotes within 24–48 hours. You compare, chat, and book — all in one place.
         </span>
       </div>
     </div>

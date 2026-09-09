@@ -20,7 +20,7 @@ interface UseRequirementWizard {
   updateCrewDetails: (data: Partial<CrewDetails>) => void;
   goNext: () => void;
   goBack: () => void;
-  goToStep: (step: StepId) => void;
+  goToStep: (step: StepId, opts?: { force?: boolean }) => void;
   canGoNext: boolean;
   canGoBack: boolean;
   isFirstStep: boolean;
@@ -72,9 +72,9 @@ export function useRequirementWizard(): UseRequirementWizard {
     }
   }, [stepIndex]);
 
-  const goToStep = useCallback((targetStep: StepId) => {
+  const goToStep = useCallback((targetStep: StepId, opts?: { force?: boolean }) => {
     const targetIndex = STEPS.findIndex((s) => s.id === targetStep);
-    if (targetIndex <= stepIndex) {
+    if (opts?.force || targetIndex <= stepIndex) {
       setStep(targetStep);
     }
   }, [stepIndex]);
