@@ -14,6 +14,17 @@ Post event requirements as a planner, performer, or crew member — 4-step wizar
 - **Google Places autocomplete** — location suggestions proxied through the backend (key never hits the browser)
 - **Secure API** — Helmet, CORS, rate limiting, request IDs, Zod error envelopes
 
+## What was built
+
+- Monorepo (`apps/web`, `apps/api`, `packages/contracts`) with one shared Zod contract validating both sides
+- 4-step wizard with category-adaptive Steps 2/3, per-step + submit-time validation, scroll-to-first-error, auto-save drafts, success screen
+- Voice-first AI assistant: floating mic widget (EN/HI), continuous conversation, barge-in, quota-free local command parsing, auto-advance on step completion, honest cross-category guidance
+- Provider chains: Groq → OpenRouter (LLM), Cartesia → Sarvam (TTS), browser SpeechRecognition (STT)
+- Google Places autocomplete via cached backend proxy
+- Voice debug inspector (`?voice-debug=1`) showing transcript → context → reply → action → TTS timing
+- 201 tests (120 API + 55 web + 26 contracts), Playwright E2E, clean typecheck + lint + prod builds
+- Deployed: Vercel (frontend) + Render (API, Docker) + MongoDB Atlas
+
 ## Screenshots
 
 | Step 1 — Event Basics | Step 2 — Requirements |
